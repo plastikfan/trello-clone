@@ -76,7 +76,16 @@ export const Column = ({ text, index, id, isPreview }: ColumnProps) => {
       <ColumnTitle>{text}</ColumnTitle>
       {
         state.lists[index].tasks.map((task, i) => (
-          <Card text={task.text} key={task.id} index={i}/>
+          // missing from pg100/101, step7
+          //
+          // <Card text={task.text} key={task.id} index={i}/>
+          <Card
+            id={task.id}
+            columnId={id}
+            text={task.text}
+            key={task.id}
+            index={i}
+          />
         ))
       }
       <AddNewItem

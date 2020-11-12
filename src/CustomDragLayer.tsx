@@ -3,7 +3,7 @@ import React from "react"
 import { useDragLayer, XYCoord } from "react-dnd"
 import { Column } from "./Column"
 import { CustomDragLayerContainer } from "./styles"
-
+import { Card } from "./Card"
 
 // Step6, pg89
 //
@@ -35,19 +35,47 @@ const CustomDragLayer: React.FC = () => {
     isDragging: monitor.isDragging()
   }))
 
-  return isDragging ? (
-    // currentOffset is not defined
-    //
+  // pg98, step7, early return if not dragging
+  //
+  if (!isDragging) {
+    return null
+  }
+
+  // pg98, step7 refactored using ternary operator
+  //
+  return (
     <CustomDragLayerContainer>
       <div style={getItemStyles(currentOffset)}>
-        <Column
-          id={item.id}
-          text={item.text}
-          index={item.index}
-        />
+        {item.type === "COLUMN" ? (
+          <Column
+            id={item.id}
+            text={item.text}
+            index={item.index}
+            isPreview={true}
+          />
+        ) : (
+            <Card
+              columnId={item.columnId}
+              isPreview={true}
+              index={0}
+              id={item.id}
+              text={item.text}
+            />
+          )}
       </div>
     </CustomDragLayerContainer>
-  ) : null
+  )
+  // return isDragging ? (
+  //   <CustomDragLayerContainer>
+  //     <div style={getItemStyles(currentOffset)}>
+  //       <Column
+  //         id={item.id}
+  //         text={item.text}
+  //         index={item.index}
+  //       />
+  //     </div>
+  //   </CustomDragLayerContainer>
+  // ) : null
 }
 
 // const CustomDragLayer: React.FC = () => {

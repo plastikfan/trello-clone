@@ -1,4 +1,15 @@
 
+// pg96, step7
+// new type CardDragItem
+//
+export type CardDragItem = {
+  index: number
+  id: string
+  columnId: string
+  text: string
+  type: "CARD"
+}
+
 export type ColumnDragItem = {
   index: number
   id: string
@@ -6,4 +17,4 @@ export type ColumnDragItem = {
   type: "COLUMN"
 }
 
-export type DragItem = ColumnDragItem
+export type DragItem = ColumnDragItem | CardDragItem
