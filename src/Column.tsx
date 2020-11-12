@@ -37,7 +37,7 @@ interface ColumnProps {
 //
 export const Column = ({ text, index, id, isPreview }: ColumnProps) => {
   const { state, dispatch } = useAppState()
-  
+
   // pg82 ref is a drag target, which is a div element
   //
   const ref = useRef<HTMLDivElement>(null)
@@ -46,17 +46,43 @@ export const Column = ({ text, index, id, isPreview }: ColumnProps) => {
   // Line 24:18:  React Hook "useDrop" cannot be called at the top level
   //
   const [, drop] = useDrop({
-    accept: "COLUMN",
+    // pg102, step7: turn accept into an array so it can contain multiple items
+    //
+    accept: ["COLUMN", "CARD"],
     hover(item: DragItem) {
-      const dragIndex = item.index
-      const hoverIndex = index
 
-      if (dragIndex === hoverIndex) {
-        return
+      if (item.type === "COLUMN") {
+        // original functionality
+        //
+        const dragIndex = item.index
+        const hoverIndex = index
+
+        if (dragIndex === hoverIndex) {
+          return
+        }
+
+        dispatch({ type: "MOVE_LIST", payload: { dragIndex, hoverIndex } })
+        item.index = hoverIndex
       }
+      else {
+        // pg102/103, step7: new functionality
+        //
+        const dragIndex = item.index
+        const hoverIndex = 0
+        const sourceColumn = item.columnId
+        const targetColumn = id
 
-      dispatch({ type: "MOVE_LIST", payload: { dragIndex, hoverIndex } })
-      item.index = hoverIndex
+        if (sourceColumn === targetColumn) {
+          return
+        }
+
+        dispatch({
+          type: "MOVE_TASK",
+          payload: { dragIndex, hoverIndex, sourceColumn, targetColumn }
+        })
+        item.index = hoverIndex
+        item.columnId = targetColumn
+      }
     }
   })
 
@@ -89,10 +115,10 @@ export const Column = ({ text, index, id, isPreview }: ColumnProps) => {
         ))
       }
       <AddNewItem
-      toggleButtonText="+ Add another task"
-      onAdd={text =>
-      dispatch({ type: "ADD_TASK", payload: { text, listId: id}})}
-      dark
+        toggleButtonText="+ Add another task"
+        onAdd={text =>
+          dispatch({ type: "ADD_TASK", payload: { text, listId: id } })}
+        dark
       />
     </ColumnContainer>
   )
