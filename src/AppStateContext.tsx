@@ -1,9 +1,14 @@
-import React, { createContext, useReducer, useContext } from "react"
+import React, { createContext, useReducer, useContext, useEffect } from "react"
 import { nanoid } from "nanoid"
 import { findItemIndexById } from "./utils/findItemIndexById"
 import { stat } from "fs"
 import { moveItem } from "./moveItem"
 import { DragItem } from "./DragItem"
+import { save } from "./api"
+
+// pg116, step9
+//
+import { withData } from "./withData"
 
 // I think that Task/List make up the application 'model' that is the back end of
 // of the ui abstractions Card/Column
@@ -35,18 +40,31 @@ interface AppStateContextProps {
 //
 const AppStateContext = createContext<AppStateContextProps>({} as AppStateContextProps)
 
-// We don't have any other props other than the children, which is why PropsWithChildren
-// is passed empty object '{}'
+// pg117, step9: wrap the AppStateProvider with withData
 //
-export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
-  const [state, dispatch] = useReducer(appStateReducer, appData)
+export const AppStateProvider = withData(
+  // We don't have any other props other than the children, which is why PropsWithChildren
+  // is passed empty object '{}'
+  //
+  ({ children, initialState }: React.PropsWithChildren<{ initialState: AppState }>) => {
+    const [state, dispatch] = useReducer(appStateReducer, initialState)
 
-  return (
-    <AppStateContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppStateContext.Provider>
-  )
-}
+    // pg111, step9
+    // I think at some point, this the side effect we'll be invoking, is to invoke a
+    // web request. So the 'save' will be invoked any time a change in state is
+    // detected
+    //
+    useEffect(() => {
+      save(state)
+    }, [state])
+
+    return (
+      <AppStateContext.Provider value={{ state, dispatch }}>
+        {children}
+      </AppStateContext.Provider>
+    )
+  }
+)
 
 // see: pg65
 //
@@ -56,6 +74,9 @@ export const useAppState = () => {
 
 // This is just some synthetic application state. Do not get concerned about weird
 // looking ids, ie where's the c1 id?
+//
+// pg117, step9: this static appData is no longer required since we now initial
+// using data from the back end
 //
 const appData: AppState = {
   draggedItem: undefined,
@@ -159,7 +180,7 @@ const appStateReducer = (state: AppState, action: Action): AppState => {
       const targetLaneIndex = findItemIndexById(state.lists, targetColumn)
       const item = state.lists[sourceLaneIndex].tasks.splice(dragIndex, 1)[0]
       state.lists[targetLaneIndex].tasks.splice(hoverIndex, 0, item)
-      return { ...state }      
+      return { ...state }
     }
 
     default: {
